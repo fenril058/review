@@ -100,11 +100,20 @@ module ReVIEW
       false
     end
 
-    def within_status(name)
+    def enter_status(name)
       prev = @doc_status[name]
-      @doc_status[name] = prev
+      @doc_status = true
+      return prev
+    end
+
+    def exit_status(name, _val=nil)
+      @doc_status[name] = nil_val
+    end
+
+    def within_status(name)
+      prev = enter_status(status_name)
       yield
-      @doc_status[name] = prev
+      exit_status(status_name, prev)
     end
 
     def within_status?(name)

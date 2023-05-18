@@ -145,9 +145,9 @@ module ReVIEW
         prefix = '*'
       end
       blank unless @output.pos == 0
-      @doc_status[:caption] = true
-      puts macro(headline_name + prefix, compile_inline(caption))
-      @doc_status[:caption] = nil
+      within_status(:caption) do
+        puts macro(headline_name + prefix, compile_inline(caption))
+      end
       if prefix == '*' && level <= @book.config['toclevel'].to_i
         puts "\\addcontentsline{toc}{#{headline_name}}{#{compile_inline(caption)}}"
       end
@@ -163,9 +163,9 @@ module ReVIEW
 
     def nonum_begin(level, _label, caption)
       blank unless @output.pos == 0
-      @doc_status[:caption] = true
-      puts macro(HEADLINE[level] + '*', compile_inline(caption))
-      @doc_status[:caption] = nil
+      within_status(:caption) do
+        puts macro(HEADLINE[level] + '*', compile_inline(caption))
+      end
       puts macro('addcontentsline', 'toc', HEADLINE[level], compile_inline(caption))
     end
 
@@ -174,9 +174,9 @@ module ReVIEW
 
     def notoc_begin(level, _label, caption)
       blank unless @output.pos == 0
-      @doc_status[:caption] = true
-      puts macro(HEADLINE[level] + '*', compile_inline(caption))
-      @doc_status[:caption] = nil
+      within_status(:caption) do
+        puts macro(HEADLINE[level] + '*', compile_inline(caption))
+      end
     end
 
     def notoc_end(level)
@@ -197,7 +197,7 @@ module ReVIEW
 
     def column_begin(level, label, caption)
       blank
-      @doc_status[:column] = true
+      enter_status(:column)
 
       target = if label
                  "\\hypertarget{#{column_label(label)}}{}"
@@ -205,17 +205,17 @@ module ReVIEW
                  "\\hypertarget{#{column_label(caption)}}{}"
                end
 
-      @doc_status[:caption] = true
-      if @book.config.check_version('2', exception: false)
-        puts '\\begin{reviewcolumn}'
-        puts target
-        puts macro('reviewcolumnhead', nil, compile_inline(caption))
-      else
-        # ver.3
-        print '\\begin{reviewcolumn}'
-        puts "[#{compile_inline(caption)}#{target}]"
+      within_status(:caption) do
+        if @book.config.check_version('2', exception: false)
+          puts '\\begin{reviewcolumn}'
+          puts target
+          puts macro('reviewcolumnhead', nil, compile_inline(caption))
+        else
+          # ver.3
+          print '\\begin{reviewcolumn}'
+          puts "[#{compile_inline(caption)}#{target}]"
+        end
       end
-      @doc_status[:caption] = nil
 
       if level <= @book.config['toclevel'].to_i
         puts "\\addcontentsline{toc}{#{HEADLINE[level]}}{#{compile_inline(caption)}}"
@@ -225,7 +225,7 @@ module ReVIEW
     def column_end(_level)
       puts '\\end{reviewcolumn}'
       blank
-      @doc_status[:column] = nil
+      enter_status(:column)
     end
 
     def common_block_begin(type, caption = nil)
