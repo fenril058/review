@@ -781,19 +781,13 @@ module ReVIEW
     end
 
     def table_header(id, caption)
-      if id.nil?
-        if caption.present?
-          @doc_status[:caption] = true
-          puts macro('reviewtablecaption*', compile_inline(caption))
-          @doc_status[:caption] = nil
+      has_label = id.present?
+      macro_name =  has_label ? 'reviewtablecaption' : 'reviewtablecaption*'
+      if caption.present?
+        within_status(:caption) do
+          puts macro(macro_name, compile_inline(caption))
         end
-      else
-        if caption.present?
-          @doc_status[:caption] = true
-          puts macro('reviewtablecaption', compile_inline(caption))
-          @doc_status[:caption] = nil
-        end
-        puts macro('label', table_label(id))
+        puts macro('label', table_label(id)) if has_label
       end
     end
 

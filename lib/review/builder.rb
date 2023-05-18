@@ -100,6 +100,22 @@ module ReVIEW
       false
     end
 
+    def within_status(name)
+      prev = @doc_status[name]
+      @doc_status[name] = prev
+      yield
+      @doc_status[name] = prev
+    end
+
+    def within_status?(name)
+      return @doc_status[name]
+    end
+
+    def within_any?(*status_names)
+      return status_names.any { |name| within_status?(name) }
+    end
+
+
     def solve_nest(s)
       check_nest
       s.gsub(/\x01→.+?←\x01/, '')
